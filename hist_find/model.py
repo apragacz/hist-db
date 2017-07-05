@@ -7,11 +7,13 @@ from .utils import iter_unique, iter_matching_lines
 class Model(object):
 
     class Action(object):
-        ACCEPTED = 'accepted'
+        EXECUTE = 'exec'
+        FILL = 'fill'
+        EDIT = 'edit'
 
-    def __init__(self, lines, lines_capacity):
+    def __init__(self, lines, lines_capacity=0, search_string=''):
         self._lines = list(iter_unique(lines))
-        self._search_chars = []
+        self._search_chars = list(search_string)
         self._position = -1
         self._lines_capacity = lines_capacity
         self._action = None
@@ -34,11 +36,20 @@ class Model(object):
     @property
     def best_matching_line(self):
         position = self._position if self._position >= 0 else 0
-        return self.matching_lines[position]
+        try:
+            return self.matching_lines[position]
+        except IndexError:
+            return None
 
     @property
     def action(self):
         return self._action
+
+    @action.setter
+    def action(self, action):
+        if self._action is not None:
+            raise ValueError('Action already set')
+        self._action = action
 
     @property
     def lines_capacity(self):
@@ -71,9 +82,6 @@ class Model(object):
 
     def append_character(self, c):
         self._search_chars.append(c)
-
-    def set_accepted(self):
-        self._action = self.Action.ACCEPTED
 
     def _clear_position(self):
         self._position = -1

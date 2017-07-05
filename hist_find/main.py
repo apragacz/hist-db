@@ -1,12 +1,14 @@
 from __future__ import print_function, unicode_literals
-import curses
+import argparse
 import logging
+import sys
+from curses import KEY_BACKSPACE, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 from curses.ascii import ctrl
 
 from .history import iter_history_lines
 from .model import Model
 from .ui import curses_ctx, paint_window
-from .term import fill_terminal
+from .term import escape_single_quote, fill_terminal
 
 logger = logging.getLogger(__name__)
 
@@ -26,45 +28,74 @@ EXIT_KEY_SEQUENCES = {
 
 
 def handle_key_press(ch, model):
+    done = False
     logger.debug("processing code %s", ch)
 
     if ch in EXIT_KEY_SEQUENCES:
         raise KeyboardInterrupt()
 
-    if ch == curses.KEY_BACKSPACE:
+    if ch == KEY_BACKSPACE:
         model.remove_character()
-    elif ch in {curses.KEY_UP, KEY_REVERSE_SEARCH}:
+    elif ch in {KEY_UP, KEY_REVERSE_SEARCH}:
         model.move_position_up()
-    elif ch == curses.KEY_DOWN:
+    elif ch == KEY_DOWN:
         model.move_position_down()
     elif ch == KEY_ENTER:
-        model.set_accepted()
-        return False
+        model.action = Model.Action.EXECUTE
+        done = True
+    elif ch == KEY_LEFT:
+        model.action = Model.Action.EDIT
+        done = True
+    elif ch == KEY_RIGHT:
+        model.action = Model.Action.FILL
+        done = True
     elif 32 <= ch < 256:
         model.append_character(chr(ch))
-    return True
+    return done
 
 
-def main_loop(model):
+def handle_action(model):
+    best_matching_line = model.best_matching_line
+    action = model.action
+    logger.info('best_matching_line %s', best_matching_line)
+    if best_matching_line is None:
+        return
+    if action == Model.Action.EXECUTE:
+        fill_terminal(best_matching_line + '\n')
+    elif action == Model.Action.FILL:
+        fill_terminal(best_matching_line)
+        print('\n', file=sys.stderr)
+    elif action == Model.Action.EDIT:
+        escaped_line = escape_single_quote(best_matching_line)
+        fill_terminal('fc ' + escaped_line + '\n')
+
+
+def main_interactive_loop(model):
     with curses_ctx() as stdscr:
-        while True:
+        done = False
+        while not done:
             paint_window(stdscr, model)
             ch = stdscr.getch()
-            if not handle_key_press(ch, model):
-                break
+            done = handle_key_press(ch, model)
 
 
 def main():
-    logging.basicConfig(
-        filename='hist-find.log',
-        filemode='w',
-        format=FILE_LOG_FORMAT,
-        level=logging.DEBUG,
-    )
     try:
-        model = Model(iter_history_lines(is_reversed=True), 1)
-        main_loop(model)
-        if model.action == Model.Action.ACCEPTED:
-            fill_terminal(model.best_matching_line)
+        logging.basicConfig(
+            filename='hist-find.log',
+            filemode='w',
+            format=FILE_LOG_FORMAT,
+            level=logging.DEBUG,
+        )
+        parser = argparse.ArgumentParser(prog='hist-find')
+        parser.add_argument('search_terms', nargs='*')
+        args = parser.parse_args()
+        search_string = ' '.join(args.search_terms)
+        model = Model(
+            iter_history_lines(is_reversed=True),
+            search_string=search_string,
+        )
+        main_interactive_loop(model)
+        handle_action(model)
     except KeyboardInterrupt:
         pass

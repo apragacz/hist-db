@@ -9,7 +9,7 @@ def iter_history_lines(is_reversed=False):
         return
     with open(get_history_path(), 'r') as f:
         for line in f:
-            yield line
+            yield line.rstrip()
 
 
 def get_history_path():

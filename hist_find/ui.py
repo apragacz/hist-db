@@ -12,7 +12,7 @@ def paint_window(stdscr, model):
     height = curses.LINES
     width = curses.COLS
     prompt_height = 1
-    lines_capacity = height - prompt_height
+    lines_capacity = max(0, height - prompt_height - 1)
     model.lines_capacity = lines_capacity
     stdscr.clear()
     for i, line in enumerate(model.matching_lines):
@@ -23,7 +23,7 @@ def paint_window(stdscr, model):
             break
 
         assert i < lines_capacity
-        line_padded = pad_with_spaces(line, width)
+        line_padded = pad_with_spaces(' ' + line, width)
         stdscr.addnstr(y, 0, line_padded, width, curses.color_pair(color_num))
     prompt = '$ '
     prompt_and_search = prompt + model.search_string
