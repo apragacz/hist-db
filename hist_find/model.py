@@ -14,9 +14,10 @@ class Model(object):
     def __init__(self, lines, lines_capacity=0, search_string=''):
         self._lines = list(iter_unique(lines))
         self._search_chars = list(search_string)
-        self._position = -1
         self._lines_capacity = lines_capacity
         self._action = None
+        self._matching_lines = None
+        self._clear_position()
 
     @property
     def search_string(self):
@@ -24,14 +25,9 @@ class Model(object):
 
     @property
     def matching_lines(self):
-        return list(itertools.islice(
-            iter_matching_lines(self._lines, self.search_string),
-            self._lines_capacity,
-        ))
-
-    @property
-    def num_of_matching_lines(self):
-        return len(self.matching_lines)
+        if self._matching_lines is None:
+            self._generate_matching_lines()
+        return self._matching_lines
 
     @property
     def best_matching_line(self):
@@ -40,6 +36,19 @@ class Model(object):
             return self.matching_lines[position]
         except IndexError:
             return None
+
+    @property
+    def num_of_matching_lines(self):
+        return len(self.matching_lines)
+
+    def _generate_matching_lines(self):
+        self._matching_lines = list(itertools.islice(
+            iter_matching_lines(self._lines, self.search_string),
+            self._lines_capacity,
+        ))
+
+    def _reset_matching_lines(self):
+        self._matching_lines = None
 
     @property
     def action(self):
@@ -60,6 +69,7 @@ class Model(object):
         self._lines_capacity = lines_capacity
         if self._position >= self._lines_capacity:
             self._clear_position()
+        self._reset_matching_lines()
 
     @property
     def position(self):
@@ -79,9 +89,12 @@ class Model(object):
         if self._search_chars:
             self._search_chars.pop()
         self._clear_position()
+        self._reset_matching_lines()
 
     def append_character(self, c):
         self._search_chars.append(c)
+        self._clear_position()
+        self._reset_matching_lines()
 
     def _clear_position(self):
         self._position = -1
