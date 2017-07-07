@@ -1,23 +1,26 @@
-from __future__ import print_function, unicode_literals
+from __future__ import absolute_import, print_function, unicode_literals
 import contextlib
 import curses
+import logging
 
 from .utils import pad_with_spaces
 
-COLOR_NUM_DEFAULT = 0
-COLOR_NUM_HIGHLIGHT = 1
+logger = logging.getLogger(__name__)
+
+
+class Color(object):
+    DEFAULT = 0
+    SELECTED = 1
 
 
 def paint_window(stdscr, model):
-    height = curses.LINES
-    width = curses.COLS
+    height, width = stdscr.getmaxyx()
     prompt_height = 1
     lines_capacity = max(0, height - prompt_height - 1)
     model.lines_capacity = lines_capacity
     stdscr.clear()
     for i, line in enumerate(model.matching_lines):
-        color_num = (COLOR_NUM_HIGHLIGHT if i == model.position
-                     else COLOR_NUM_DEFAULT)
+        color_num = Color.SELECTED if i == model.position else Color.DEFAULT
         y = lines_capacity - 1 - i
         if y < 0:
             break
@@ -32,7 +35,7 @@ def paint_window(stdscr, model):
 
 
 @contextlib.contextmanager
-def curses_ctx():
+def ui_ctx():
     stdscr = None
     try:
         stdscr = curses.initscr()
@@ -40,7 +43,7 @@ def curses_ctx():
         curses.cbreak()
         curses.start_color()
         curses.use_default_colors()
-        curses.init_pair(1, 0, 7)
+        curses.init_pair(Color.SELECTED, 0, 7)
         stdscr.keypad(True)
         yield stdscr
     finally:

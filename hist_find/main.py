@@ -1,4 +1,4 @@
-from __future__ import print_function, unicode_literals
+from __future__ import absolute_import, print_function, unicode_literals
 import argparse
 import logging
 import sys
@@ -7,7 +7,7 @@ from curses.ascii import ctrl
 
 from .history import iter_history_lines
 from .model import Model
-from .ui import curses_ctx, paint_window
+from .curses import ui_ctx, paint_window
 from .term import escape_single_quote, fill_terminal
 
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ def handle_action(model):
 
 
 def main_interactive_loop(model):
-    with curses_ctx() as stdscr:
+    with ui_ctx() as stdscr:
         done = False
         while not done:
             paint_window(stdscr, model)

@@ -1,7 +1,10 @@
-from __future__ import print_function, unicode_literals
+from __future__ import absolute_import, print_function, unicode_literals
 import itertools
+import logging
 
 from .utils import iter_unique, iter_matching_lines
+
+logger = logging.getLogger(__name__)
 
 
 class Model(object):
@@ -66,9 +69,13 @@ class Model(object):
 
     @lines_capacity.setter
     def lines_capacity(self, lines_capacity):
-        self._lines_capacity = lines_capacity
-        if self._position >= self._lines_capacity:
+        if self._lines_capacity == lines_capacity:
+            return
+        if self._position >= lines_capacity:
             self._clear_position()
+        logger.debug('lines_capacity %s -> %s',
+                     self._lines_capacity, lines_capacity)
+        self._lines_capacity = lines_capacity
         self._reset_matching_lines()
 
     @property
