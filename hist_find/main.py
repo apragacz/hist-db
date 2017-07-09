@@ -1,10 +1,12 @@
 from __future__ import absolute_import, print_function, unicode_literals
 import argparse
 import logging
+import os.path
 import sys
 from curses import KEY_BACKSPACE, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 from curses.ascii import ctrl
 
+from .config import load_config
 from .history import iter_history_lines
 from .model import Model
 from .curses import ui_ctx, paint_window
@@ -79,14 +81,38 @@ def main_interactive_loop(model):
             done = handle_key_press(ch, model)
 
 
+def setup_logging(config):
+    logging_config = config['logging']
+    filepath = os.path.expanduser(logging_config['file'])
+    filemode = 'a' if logging_config['append'] else 'w'
+    level_str = logging_config['level']
+    level_for_str = {
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        'fatal': logging.FATAL,
+    }
+    level = level_for_str.get(level_str, logging.INFO)
+    logging.basicConfig(
+        filename=filepath,
+        filemode=filemode,
+        format=FILE_LOG_FORMAT,
+        level=level,
+    )
+    logger.info('config: %s', config)
+
+
+def get_parser():
+    parser = argparse.ArgumentParser(prog='hist-find')
+    parser.add_argument('search_terms', nargs='*')
+    return parser
+
+
 def main():
     try:
-        logging.basicConfig(
-            filename='hist-find.log',
-            filemode='w',
-            format=FILE_LOG_FORMAT,
-            level=logging.DEBUG,
-        )
+        config = load_config()
+        setup_logging(config)
         parser = argparse.ArgumentParser(prog='hist-find')
         parser.add_argument('search_terms', nargs='*')
         args = parser.parse_args()
