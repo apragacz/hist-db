@@ -38,7 +38,7 @@ def find_action(config, args):
     find(config, start_search_string)
 
 
-def main():
+def main(args=None):
     config = load_config()
     setup_logging(config)
 
@@ -49,6 +49,6 @@ def main():
     find_parser.add_argument('search_terms', nargs='*')
     find_parser.set_defaults(action=find_action)
 
-    args = parser.parse_args()
-    action = args.action
-    action(config, args)
+    parser_args = parser.parse_args(args=args)
+    parser_action = parser_args.action
+    parser_action(config, parser_args)
