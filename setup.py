@@ -38,8 +38,8 @@ def get_long_description(markdown_filepath):
 
 
 setup(
-    name='hist-find',
-    version=get_version('hist_find'),
+    name='hist-db',
+    version=get_version('hist_db'),
     packages=find_packages(exclude=['tests.*', 'tests']),
     author='Andrzej Pragacz',
     author_email='apragacz@o2.pl',
@@ -53,7 +53,9 @@ setup(
         'shell',
         'history',
         'histfind',
+        'hist-db',
         'hist-find',
+        'hist',
         'reverse',
         'search',
         'reverse-i-search',
@@ -73,10 +75,10 @@ setup(
         'Topic :: Utilities',
     ],
     install_requires=get_requirements('requirements.txt'),
-    url='https://github.com/szopu/hist-find',
+    url='https://github.com/apragacz/hist-db',
     entry_points={
         'console_scripts': [
-            'hist-find = hist_find.main:main',
+            'hist-db = hist_db.main:main',
         ],
     },
 )

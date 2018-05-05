@@ -8,7 +8,7 @@ from six.moves.configparser import ConfigParser, NoSectionError
 
 CONFIG_DEFAULTS = {
     'logging': {
-        'file': '~/.hist-find.log',
+        'file': '~/.hist-db.log',
         'append': True,
         'level': 'error',
     },
@@ -17,7 +17,7 @@ CONFIG_DEFAULTS = {
 
 def get_default_config_path():
     return os.path.join(os.environ['HOME'],
-                        '.config', 'hist-find', 'config.ini')
+                        '.config', 'hist-db', 'config.ini')
 
 
 def load_config(config_path=None, defaults=None):

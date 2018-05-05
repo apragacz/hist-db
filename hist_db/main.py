@@ -104,7 +104,7 @@ def setup_logging(config):
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(prog='hist-find')
+    parser = argparse.ArgumentParser(prog='hist-db')
     parser.add_argument('search_terms', nargs='*')
     return parser
 
@@ -113,7 +113,7 @@ def main():
     try:
         config = load_config()
         setup_logging(config)
-        parser = argparse.ArgumentParser(prog='hist-find')
+        parser = argparse.ArgumentParser(prog='hist-db')
         parser.add_argument('search_terms', nargs='*')
         args = parser.parse_args()
         search_string = ' '.join(args.search_terms)
