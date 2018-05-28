@@ -75,7 +75,7 @@ def main_interactive_loop(model):
             done = handle_key_press(ch, model)
 
 
-def find(config, start_search_string):
+def start_search(config, start_search_string):
     try:
         model = Model(
             iter_history_lines(is_reversed=True),

@@ -4,7 +4,6 @@ import logging
 import os.path
 
 from .config import load_config
-from .search import find
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +32,19 @@ def setup_logging(config):
     logger.info('config: %s', config)
 
 
-def find_action(config, args):
+def search_action(config, args):
+    from hist_db.search import start_search
     start_search_string = ' '.join(args.search_terms)
-    find(config, start_search_string)
+    start_search(config, start_search_string)
+
+
+def append_action(config, args):
+    pass
+
+
+def shell_config_show_action(config, args):
+    from hist_db.shell_config import show_shell_config
+    show_shell_config(config)
 
 
 def main(args=None):
@@ -45,9 +54,20 @@ def main(args=None):
     parser = argparse.ArgumentParser(prog='hist-db')
     subparsers = parser.add_subparsers(help='sub-command help')
 
-    find_parser = subparsers.add_parser('find')
-    find_parser.add_argument('search_terms', nargs='*')
-    find_parser.set_defaults(action=find_action)
+    search_parser = subparsers.add_parser('search')
+    search_parser.add_argument('--reverse', action='store_true')
+    search_parser.add_argument('--forward', action='store_true')
+    search_parser.add_argument('search_terms', nargs='*')
+    search_parser.set_defaults(action=search_action)
+
+    append_parser = subparsers.add_parser('append')
+    append_parser.set_defaults(action=append_action)
+
+    shell_config_parser = subparsers.add_parser('shell-config')
+    shell_config_subparsers = shell_config_parser.add_subparsers()
+
+    shell_config_show_parser = shell_config_subparsers.add_parser('show')
+    shell_config_show_parser.set_defaults(action=shell_config_show_action)
 
     parser_args = parser.parse_args(args=args)
     parser_action = parser_args.action
