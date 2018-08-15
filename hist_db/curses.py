@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function, unicode_literals
 import contextlib
 import curses
 import logging
+import re
 
 from .utils import pad_with_spaces
 
@@ -26,6 +27,7 @@ def paint_window(stdscr, model):
             break
 
         assert i < lines_capacity
+        line = re.sub(r'[^\x00-\x7F]+', '?', line)
         line_padded = pad_with_spaces(' ' + line, width)
         stdscr.addnstr(y, 0, line_padded, width, curses.color_pair(color_num))
     prompt = '$ '
