@@ -1,8 +1,9 @@
 from __future__ import absolute_import, print_function, unicode_literals
 import logging
+import platform
 import sys
 from curses import KEY_BACKSPACE, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
-from curses.ascii import ctrl
+from curses.ascii import ctrl, DEL as KEY_DELETE
 
 from .history import iter_history_lines
 from .model import Model
@@ -11,7 +12,9 @@ from .term import escape_single_quote, fill_terminal
 
 logger = logging.getLogger(__name__)
 
-
+OS_NAME = platform.system().lower()
+# There is no backspace key on Mac OS
+KEY_MAGIC_BACKSPACE = KEY_DELETE if OS_NAME == 'darwin' else KEY_BACKSPACE
 KEY_REVERSE_SEARCH = ctrl(ord('r'))
 KEY_EXIT = ctrl(ord('g'))
 KEY_ESCAPE = 27
@@ -30,7 +33,7 @@ def handle_key_press(ch, model):
     if ch in EXIT_KEY_SEQUENCES:
         raise KeyboardInterrupt()
 
-    if ch == KEY_BACKSPACE:
+    if ch == KEY_MAGIC_BACKSPACE:
         model.remove_character()
     elif ch in {KEY_UP, KEY_REVERSE_SEARCH}:
         model.move_position_up()
