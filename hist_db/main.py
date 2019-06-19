@@ -1,7 +1,9 @@
 from __future__ import absolute_import, print_function, unicode_literals
 import argparse
 import logging
+import sys
 import os.path
+from functools import partial
 
 from .config import load_config
 
@@ -47,11 +49,18 @@ def shell_config_show_action(config, args):
     show_shell_config(config)
 
 
+def _parser_missing_action(parser, config, args):
+    parser.print_help()
+    sys.exit(1)
+
+
 def main(args=None):
     config = load_config()
     setup_logging(config)
 
     parser = argparse.ArgumentParser(prog='hist-db')
+    parser_missing_action = partial(_parser_missing_action, parser)
+    parser.set_defaults(action=parser_missing_action)
     subparsers = parser.add_subparsers(help='sub-command help')
 
     search_parser = subparsers.add_parser('search')
@@ -64,11 +73,17 @@ def main(args=None):
     append_parser.set_defaults(action=append_action)
 
     shell_config_parser = subparsers.add_parser('shell-config')
+    shell_config_parser_missing_action = partial(
+        _parser_missing_action, shell_config_parser)
+    shell_config_parser.set_defaults(action=shell_config_parser_missing_action)
     shell_config_subparsers = shell_config_parser.add_subparsers()
 
     shell_config_show_parser = shell_config_subparsers.add_parser('show')
     shell_config_show_parser.set_defaults(action=shell_config_show_action)
 
     parser_args = parser.parse_args(args=args)
-    parser_action = parser_args.action
+    parser_action = getattr(parser_args, 'action', None)
+    if not parser_action:
+        parser.print_help()
+        sys.exit(1)
     parser_action(config, parser_args)
