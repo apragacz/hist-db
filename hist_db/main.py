@@ -82,8 +82,5 @@ def main(args=None):
     shell_config_show_parser.set_defaults(action=shell_config_show_action)
 
     parser_args = parser.parse_args(args=args)
-    parser_action = getattr(parser_args, 'action', None)
-    if not parser_action:
-        parser.print_help()
-        sys.exit(1)
+    parser_action = getattr(parser_args, 'action', parser_missing_action)
     parser_action(config, parser_args)
